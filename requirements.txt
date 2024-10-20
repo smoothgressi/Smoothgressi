@@ -1,0 +1,8 @@
+Requirements to install using PIP :
+Program:
+PyQt5
+matplotlib
+
+Building :
+pyinstaller
+auto-py-to-exe (not required but recommended)
