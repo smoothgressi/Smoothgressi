@@ -2,6 +2,8 @@ Requirements to install using PIP :
 Program:
 PyQt5
 matplotlib
+pandas
+openpyxl
 
 Building :
 pyinstaller

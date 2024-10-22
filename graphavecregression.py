@@ -11,9 +11,10 @@ import matplotlib.pyplot as plt
 import matplotlib.style as mplstyle
 import tkinter as tk
 from tkinter import ttk
+import pandas as pd
 
-numero_version = "Alpha-2"
-numero_build = "3"
+numero_version = "Beta-1"
+numero_build = "4"
 
 def show_splash():
     splash = tk.Tk()
@@ -41,6 +42,36 @@ def show_splash():
 
     splash.after(3500, lambda: [splash.destroy()])
     splash.mainloop()
+
+class TableInputMethodDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle('Méthode d\'entrée des données')
+
+        layout = QVBoxLayout()
+        label = QLabel(f"Selectionnez une methode d'entrée des données")
+        layout.addWidget(label)
+
+        self.manual_radio = QRadioButton('Entrer les données manuellement')
+        self.file_radio = QRadioButton('Importer depuis un fichier (Exel ou CSV)')
+        self.manual_radio.setChecked(True)
+
+        self.radio_group = QButtonGroup(self)
+        self.radio_group.addButton(self.manual_radio)
+        self.radio_group.addButton(self.file_radio)
+
+        layout.addWidget(self.manual_radio)
+        layout.addWidget(self.file_radio)
+
+        self.buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
+        layout.addWidget(self.buttonBox)
+
+        self.setLayout(layout)
+
+    def is_manual(self):
+        return self.manual_radio.isChecked()
 
 class StartupDialog(QDialog):
     def __init__(self):
@@ -180,10 +211,42 @@ class GraphApp(QMainWindow):
             self.openTableDialog()
 
     def openTableDialog(self):
-        dialog = TableInputDialog(self, self.x_label, self.y_label)
-        if dialog.exec_() == QDialog.Accepted:
-            self.x_values, self.y_values = dialog.getValues()
-            self.plotGraph(self.x_values, self.y_values)
+        # Ouvrir le choix entre saisie manuelle et import de fichier
+        input_method_dialog = TableInputMethodDialog(self)
+        if input_method_dialog.exec_() == QDialog.Accepted:
+            if input_method_dialog.is_manual():
+                # Si l'utilisateur choisit l'entrée manuelle, ouvrir la boîte de dialogue pour saisir les données
+                dialog = TableInputDialog(self, self.x_label, self.y_label)
+                if dialog.exec_() == QDialog.Accepted:
+                    self.x_values, self.y_values = dialog.getValues()
+                    self.plotGraph(self.x_values, self.y_values)
+            else:
+                # Si l'utilisateur choisit d'importer un fichier
+                self.importDataFromFile()
+
+    def importDataFromFile(self):
+        options = QFileDialog.Options()
+        file_name, _ = QFileDialog.getOpenFileName(self, "Importer les données", "", "Fichiers Excel (*.xlsx);;Fichiers CSV (*.csv)", options=options)
+        
+        if file_name:
+            # Lire le fichier et extraire les deux premières colonnes
+            if file_name.endswith('.xlsx'):
+                data = pd.read_excel(file_name)
+            elif file_name.endswith('.csv'):
+                data = pd.read_csv(file_name)
+
+            # Assurer que seules les deux premières colonnes sont prises et la première ligne est considérée comme titre et unité
+            if len(data.columns) >= 2:
+                self.x_values = data.iloc[1:, 0].astype(float).tolist()  # Convertir en float
+                self.y_values = data.iloc[1:, 1].astype(float).tolist()
+                self.x_label = data.columns[0]  # Titre pour l'axe X
+                self.y_label = data.columns[1]  # Titre pour l'axe Y
+                self.x_unit = data.iloc[0, 0]   # Unité pour l'axe X (première ligne)
+                self.y_unit = data.iloc[0, 1]   # Unité pour l'axe Y (première ligne)
+
+                self.plotGraph(self.x_values, self.y_values)
+            else:
+                print("Erreur : Le fichier doit contenir au moins deux colonnes.")
 
     def plotGraph(self, x, y):
         self.figure.clear()
