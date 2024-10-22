@@ -322,17 +322,39 @@ class GraphApp(QMainWindow):
         ax.legend()
 
     def saveGraph(self):
+        # Enregistrer le graphique dans un fichier
         options = QFileDialog.Options()
-        file_name, _ = QFileDialog.getSaveFileName(self, "Enregistrer le graphique", "", "Images (*.png);;PDF (*.pdf)", options=options)
+        file_name, _ = QFileDialog.getSaveFileName(self, "Enregistrer le graphique", "", "Graphique X-Y (*.sgxy);;Tous les fichiers (*)", options=options)
         if file_name:
-            self.figure.savefig(file_name)
+            with open(file_name, 'w') as file:
+                # Sauvegarder les paramètres du graphique
+                file.write(f"{self.graph_title}\n")
+                file.write(f"{self.x_label}\n")
+                file.write(f"{self.x_unit}\n")
+                file.write(f"{self.y_label}\n")
+                file.write(f"{self.y_unit}\n")
+                # Sauvegarder les valeurs de X et Y
+                file.write(' '.join(map(str, self.x_values)) + '\n')
+                file.write(' '.join(map(str, self.y_values)) + '\n')
 
     def loadGraph(self):
+        # Charger un graphique à partir d'un fichier
         options = QFileDialog.Options()
-        file_name, _ = QFileDialog.getOpenFileName(self, "Charger un graphique", "", "Fichiers (*.png *.pdf)", options=options)
+        file_name, _ = QFileDialog.getOpenFileName(self, "Charger un graphique", "", "Graphique X-Y (*.sgxy);;Tous les fichiers (*)", options=options)
         if file_name:
-            print("Graphique chargé :", file_name)
+            with open(file_name, 'r') as file:
+                # Charger les paramètres du graphique
+                self.graph_title = file.readline().strip()
+                self.x_label = file.readline().strip()
+                self.x_unit = file.readline().strip()
+                self.y_label = file.readline().strip()
+                self.y_unit = file.readline().strip()
+                # Charger les valeurs de X et Y
+                self.x_values = list(map(float, file.readline().strip().split()))
+                self.y_values = list(map(float, file.readline().strip().split()))
 
+                # Tracer le graphique avec les données chargées
+                self.plotGraph(self.x_values, self.y_values)
 class GraphSettingsDialog(QDialog):
     def __init__(self, parent=None, allow_axis_edit=True):
         super().__init__(parent)
