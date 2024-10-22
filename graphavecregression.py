@@ -14,7 +14,7 @@ from tkinter import ttk
 import pandas as pd
 
 numero_version = "Beta-2"
-numero_build = "7"
+numero_build = "8"
 file_needs_save = False
 
 def show_splash():
@@ -515,7 +515,7 @@ class AboutDialog(QDialog):
 
         layout = QVBoxLayout()
 
-        about_label = QLabel(f"Projet Smoothgressi\nVersion : {numero_version}\nNumero de build : {numero_build}\nDévloppé par colin524, nopy234536758 et Tonboti")
+        about_label = QLabel(f"Projet Smoothgressi\nVersion : {numero_version}\nNumero de build : {numero_build}\nDévloppé par colin524, nopy234536758 et Tonboti\nSite web : smoothgressi.github.io")
         about_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(about_label)
 
