@@ -3,7 +3,7 @@ import numpy as np
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QWidget, 
                              QMenuBar, QMenu, QAction, QFileDialog, QTableWidget, QTableWidgetItem, 
                              QDialog, QDialogButtonBox, QFormLayout, QLineEdit, QComboBox, QPushButton, QLabel, 
-                             QRadioButton, QButtonGroup, QHBoxLayout)
+                             QRadioButton, QButtonGroup, QHBoxLayout, QMessageBox)
 from PyQt5.QtCore import Qt, QTimer
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -14,7 +14,8 @@ from tkinter import ttk
 import pandas as pd
 
 numero_version = "Beta-1"
-numero_build = "5"
+numero_build = "6"
+file_needs_save = False
 
 def show_splash():
     splash = tk.Tk()
@@ -143,7 +144,7 @@ class GraphApp(QMainWindow):
         graph_menu = menubar.addMenu('Fichier')
 
         create_graph_action = QAction('Créer un graphique', self)
-        create_graph_action.triggered.connect(self.openGraphSettingsDialog)
+        create_graph_action.triggered.connect(self.newGraph)
         graph_menu.addAction(create_graph_action)
 
         save_graph_action = QAction('Enregistrer le graphique', self)
@@ -185,6 +186,27 @@ class GraphApp(QMainWindow):
         about_action.triggered.connect(self.showAboutDialog)
         help_menu.addAction(about_action)
 
+    def newGraph(self):
+        global file_needs_save
+
+        if file_needs_save:
+    # Demander à l'utilisateur s'il souhaite enregistrer avant de créer un nouveau graphique
+            reply = QMessageBox.question(self, 'Enregistrer le graphique',
+                                        "Voulez-vous enregistrer votre travail avant de créer un nouveau graphique ?", 
+                                        QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel, QMessageBox.Cancel)
+
+            if reply == QMessageBox.Yes:
+                self.saveGraph()
+                self.openGraphSettingsDialog()  # Réinitialiser les données pour un nouveau graphique
+            elif reply == QMessageBox.No:
+                self.openGraphSettingsDialog()  # Réinitialiser sans sauvegarder
+            else:
+                # Annuler la création du nouveau graphique
+                pass
+        else:
+            self.openGraphSettingsDialog
+
+
     def showStartupDialog(self):
         startup_dialog = StartupDialog()
         if startup_dialog.exec_() == QDialog.Accepted:
@@ -205,6 +227,24 @@ class GraphApp(QMainWindow):
         self.current_theme = theme
         mplstyle.use(theme)
         self.plotGraph(self.x_values, self.y_values)
+
+    def closeEvent(self, event):
+        if file_needs_save:
+    # Demander à l'utilisateur s'il souhaite enregistrer avant de quitter
+            reply = QMessageBox.question(self, 'Enregistrer le graphique',
+                                        "Voulez-vous enregistrer votre travail avant de quitter ?", 
+                                        QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel, QMessageBox.Cancel)
+
+            if reply == QMessageBox.Yes:
+                self.saveGraph()
+                event.accept()  # Fermer l'application après l'enregistrement
+            elif reply == QMessageBox.No:
+                event.accept()  # Fermer l'application sans sauvegarder
+            else:
+                event.ignore()  # Annuler la fermeture
+        else:
+            event.accept()
+
 
     def openGraphSettingsDialog(self):
         # Ouvrir la boîte de dialogue pour la sélection de l'emplacement des données en premier
@@ -289,6 +329,8 @@ class GraphApp(QMainWindow):
 
 
     def plotGraph(self, x, y):
+        global file_needs_save
+        file_needs_save = True
         self.figure.clear()
         ax = self.figure.add_subplot(111)
         ax.plot(x, y, 'o', label='Données')  
