@@ -14,7 +14,7 @@ from tkinter import ttk
 import pandas as pd
 
 numero_version = "Beta-1"
-numero_build = "4"
+numero_build = "5"
 
 def show_splash():
     splash = tk.Tk()
@@ -154,6 +154,12 @@ class GraphApp(QMainWindow):
         load_graph_action.triggered.connect(self.loadGraph)
         graph_menu.addAction(load_graph_action)
 
+        edit_menu = self.menuBar().addMenu('Edition')
+
+        edit_values_action = QAction('Modifier les valeurs', self)
+        edit_values_action.triggered.connect(self.openEditValuesDialog)
+        edit_menu.addAction(edit_values_action)
+
         regression_menu = menubar.addMenu('Régression')
         affine_action = QAction('Affine', self)
         affine_action.triggered.connect(lambda: self.setRegressionModel('Affine'))
@@ -201,6 +207,28 @@ class GraphApp(QMainWindow):
         self.plotGraph(self.x_values, self.y_values)
 
     def openGraphSettingsDialog(self):
+        # Ouvrir la boîte de dialogue pour la sélection de l'emplacement des données en premier
+        input_method_dialog = TableInputMethodDialog(self)
+        
+        if input_method_dialog.exec_() == QDialog.Accepted:
+            if input_method_dialog.is_manual():
+                # Si l'utilisateur choisit l'entrée manuelle
+                self.openGraphSettingsDialog2(manual=True)
+            else:
+                # Si l'utilisateur choisit d'importer un fichier
+                self.importDataFromFile()
+                
+                # Ouvrir la boîte de dialogue des paramètres du graphique, mais seulement permettre la modification du titre
+                self.openGraphSettingsDialogAfterImport()
+
+
+    def openGraphSettingsDialogAfterImport(self):
+        settings_dialog = GraphSettingsDialog(self, allow_axis_edit=False)
+        if settings_dialog.exec_() == QDialog.Accepted:
+            self.graph_title = settings_dialog.title_input.text()
+            self.plotGraph(self.x_values, self.y_values)
+
+    def openGraphSettingsDialog2(self, manual=False):
         settings_dialog = GraphSettingsDialog(self)
         if settings_dialog.exec_() == QDialog.Accepted:
             self.graph_title = settings_dialog.title_input.text()
@@ -208,45 +236,57 @@ class GraphApp(QMainWindow):
             self.x_unit = settings_dialog.x_unit_input.text()
             self.y_label = settings_dialog.y_label_input.text()
             self.y_unit = settings_dialog.y_unit_input.text()
-            self.openTableDialog()
+            self.openTableDialog(manual=True)
 
-    def openTableDialog(self):
+    def openTableDialog(self, manual=False):
         # Ouvrir le choix entre saisie manuelle et import de fichier
-        input_method_dialog = TableInputMethodDialog(self)
-        if input_method_dialog.exec_() == QDialog.Accepted:
-            if input_method_dialog.is_manual():
-                # Si l'utilisateur choisit l'entrée manuelle, ouvrir la boîte de dialogue pour saisir les données
+        if manual:
+            # Si l'utilisateur choisit l'entrée manuelle, ouvrir la boîte de dialogue pour saisir les données
                 dialog = TableInputDialog(self, self.x_label, self.y_label)
                 if dialog.exec_() == QDialog.Accepted:
                     self.x_values, self.y_values = dialog.getValues()
                     self.plotGraph(self.x_values, self.y_values)
-            else:
-                # Si l'utilisateur choisit d'importer un fichier
-                self.importDataFromFile()
+        else:
+            # Si l'utilisateur choisit d'importer un fichier
+            self.importDataFromFile()
+
 
     def importDataFromFile(self):
         options = QFileDialog.Options()
         file_name, _ = QFileDialog.getOpenFileName(self, "Importer les données", "", "Fichiers Excel (*.xlsx);;Fichiers CSV (*.csv)", options=options)
         
         if file_name:
-            # Lire le fichier et extraire les deux premières colonnes
             if file_name.endswith('.xlsx'):
                 data = pd.read_excel(file_name)
             elif file_name.endswith('.csv'):
                 data = pd.read_csv(file_name)
 
-            # Assurer que seules les deux premières colonnes sont prises et la première ligne est considérée comme titre et unité
             if len(data.columns) >= 2:
-                self.x_values = data.iloc[1:, 0].astype(float).tolist()  # Convertir en float
+                self.x_values = data.iloc[1:, 0].astype(float).tolist()
                 self.y_values = data.iloc[1:, 1].astype(float).tolist()
-                self.x_label = data.columns[0]  # Titre pour l'axe X
-                self.y_label = data.columns[1]  # Titre pour l'axe Y
-                self.x_unit = data.iloc[0, 0]   # Unité pour l'axe X (première ligne)
-                self.y_unit = data.iloc[0, 1]   # Unité pour l'axe Y (première ligne)
+                self.x_label = data.columns[0]
+                self.y_label = data.columns[1]
+                self.x_unit = data.iloc[0, 0]
+                self.y_unit = data.iloc[0, 1]
 
                 self.plotGraph(self.x_values, self.y_values)
             else:
                 print("Erreur : Le fichier doit contenir au moins deux colonnes.")
+
+
+    def openEditValuesDialog(self):
+        dialog = TableInputDialog(self, self.x_label, self.y_label)
+        
+        # Pré-remplir les valeurs actuelles dans le tableau
+        for row in range(min(len(self.x_values), dialog.table.rowCount())):
+            dialog.table.setItem(row, 0, QTableWidgetItem(str(self.x_values[row])))
+            dialog.table.setItem(row, 1, QTableWidgetItem(str(self.y_values[row])))
+        
+        if dialog.exec_() == QDialog.Accepted:
+            # Mettre à jour les valeurs après modification
+            self.x_values, self.y_values = dialog.getValues()
+            self.plotGraph(self.x_values, self.y_values)
+
 
     def plotGraph(self, x, y):
         self.figure.clear()
@@ -294,7 +334,7 @@ class GraphApp(QMainWindow):
             print("Graphique chargé :", file_name)
 
 class GraphSettingsDialog(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, allow_axis_edit=True):
         super().__init__(parent)
         self.setWindowTitle('Paramètres du graphique')
 
@@ -311,6 +351,13 @@ class GraphSettingsDialog(QDialog):
         layout.addRow('Axe X - Unité:', self.x_unit_input)
         layout.addRow('Axe Y - Label:', self.y_label_input)
         layout.addRow('Axe Y - Unité:', self.y_unit_input)
+
+        # Si l'édition des axes n'est pas permise, désactiver les champs
+        if not allow_axis_edit:
+            self.x_label_input.setDisabled(True)
+            self.x_unit_input.setDisabled(True)
+            self.y_label_input.setDisabled(True)
+            self.y_unit_input.setDisabled(True)
 
         self.buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.buttonBox.accepted.connect(self.accept)
