@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import tkinter as tk
 
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 
 
 def show_splash():
@@ -37,10 +37,12 @@ def show_splash():
     # Ajouter un message à la fenêtre de splash
     label = ttk.Label(splash, text="Projet Smoothgressi", font=("Calibri Bold", 16))
     label.pack(expand=True)
-    label = ttk.Label(splash, text="Version Alpha-1", font=("Calibri", 8))
+    label = ttk.Label(splash, text="Version Alpha-1 (build 1)", font=("Calibri", 8))
     label.pack(expand=True)
     label = ttk.Label(splash, text="Demmarage en cours...", font=("Calibri", 10))
     label.pack(expand=True)
+
+    messagebox.showwarning("Version obsolete", "Cette version est obsolete et ne doit être utilisée que en cas de besoin")
 
     # Fixer la durée du splash (3000ms = 3 secondes)
     splash.after(3500, lambda: [splash.destroy()])
