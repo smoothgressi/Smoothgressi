@@ -214,20 +214,39 @@ class GraphApp(QMainWindow):
                 self.openGraphSettingsDialog()
             else:
                 self.loadGraph()
+        else:
+            sys.exit()
 
     def showAboutDialog(self):
         about_dialog = AboutDialog(self)
         about_dialog.exec_()
 
     def setRegressionModel(self, model):
-        self.regression_model = model
-        self.plotGraph(self.x_values, self.y_values)
+        if file_needs_save:
+            self.regression_model = model
+            self.plotGraph(self.x_values, self.y_values)
+        else:
+            self.show_no_graph_error()
 
     def changeTheme(self, theme):
-        self.current_theme = theme
-        mplstyle.use(theme)
-        self.plotGraph(self.x_values, self.y_values)
+        if file_needs_save:
+            self.current_theme = theme
+            mplstyle.use(theme)
+            self.plotGraph(self.x_values, self.y_values)
+        else:
+            self.show_no_graph_error()
 
+    def show_no_graph_error(self):
+        reply = QMessageBox.question(self, 'Aucun graphique',
+                                        "Aucun graphique creé, voulez-vous en creer un maintenant ?", 
+                                        QMessageBox.Yes | QMessageBox.No , QMessageBox.Yes)
+
+        if reply == QMessageBox.Yes:
+            self.openGraphSettingsDialog()
+        elif reply == QMessageBox.No:
+            pass
+
+            
     def closeEvent(self, event):
         if file_needs_save:
     # Demander à l'utilisateur s'il souhaite enregistrer avant de quitter
@@ -260,6 +279,11 @@ class GraphApp(QMainWindow):
                 
                 # Ouvrir la boîte de dialogue des paramètres du graphique, mais seulement permettre la modification du titre
                 self.openGraphSettingsDialogAfterImport()
+        else:
+            if file_needs_save:
+                pass
+            else:
+                self.showStartupDialog()
 
 
     def openGraphSettingsDialogAfterImport(self):
@@ -277,6 +301,11 @@ class GraphApp(QMainWindow):
             self.y_label = settings_dialog.y_label_input.text()
             self.y_unit = settings_dialog.y_unit_input.text()
             self.openTableDialog(manual=True)
+        else:
+            if file_needs_save:
+                pass
+            else:
+                self.showStartupDialog()
 
     def openTableDialog(self, manual=False):
         # Ouvrir le choix entre saisie manuelle et import de fichier
@@ -286,6 +315,11 @@ class GraphApp(QMainWindow):
                 if dialog.exec_() == QDialog.Accepted:
                     self.x_values, self.y_values = dialog.getValues()
                     self.plotGraph(self.x_values, self.y_values)
+                else:
+                    if file_needs_save:
+                        pass
+                    else:
+                        self.showStartupDialog()
         else:
             # Si l'utilisateur choisit d'importer un fichier
             self.importDataFromFile()
@@ -312,20 +346,28 @@ class GraphApp(QMainWindow):
                 self.plotGraph(self.x_values, self.y_values)
             else:
                 print("Erreur : Le fichier doit contenir au moins deux colonnes.")
+        else:
+            if file_needs_save:
+                pass
+            else:
+                self.showStartupDialog()
 
 
     def openEditValuesDialog(self):
-        dialog = TableInputDialog(self, self.x_label, self.y_label)
-        
-        # Pré-remplir les valeurs actuelles dans le tableau
-        for row in range(min(len(self.x_values), dialog.table.rowCount())):
-            dialog.table.setItem(row, 0, QTableWidgetItem(str(self.x_values[row])))
-            dialog.table.setItem(row, 1, QTableWidgetItem(str(self.y_values[row])))
-        
-        if dialog.exec_() == QDialog.Accepted:
-            # Mettre à jour les valeurs après modification
-            self.x_values, self.y_values = dialog.getValues()
-            self.plotGraph(self.x_values, self.y_values)
+        if file_needs_save:
+            dialog = TableInputDialog(self, self.x_label, self.y_label)
+            
+            # Pré-remplir les valeurs actuelles dans le tableau
+            for row in range(min(len(self.x_values), dialog.table.rowCount())):
+                dialog.table.setItem(row, 0, QTableWidgetItem(str(self.x_values[row])))
+                dialog.table.setItem(row, 1, QTableWidgetItem(str(self.y_values[row])))
+            
+            if dialog.exec_() == QDialog.Accepted:
+                # Mettre à jour les valeurs après modification
+                self.x_values, self.y_values = dialog.getValues()
+                self.plotGraph(self.x_values, self.y_values)
+        else:
+            self.show_no_graph_error()
 
 
     def plotGraph(self, x, y):
@@ -364,20 +406,23 @@ class GraphApp(QMainWindow):
         ax.legend()
 
     def saveGraph(self):
-        # Enregistrer le graphique dans un fichier
-        options = QFileDialog.Options()
-        file_name, _ = QFileDialog.getSaveFileName(self, "Enregistrer le graphique", "", "Graphique X-Y (*.sgxy);;Tous les fichiers (*)", options=options)
-        if file_name:
-            with open(file_name, 'w') as file:
-                # Sauvegarder les paramètres du graphique
-                file.write(f"{self.graph_title}\n")
-                file.write(f"{self.x_label}\n")
-                file.write(f"{self.x_unit}\n")
-                file.write(f"{self.y_label}\n")
-                file.write(f"{self.y_unit}\n")
-                # Sauvegarder les valeurs de X et Y
-                file.write(' '.join(map(str, self.x_values)) + '\n')
-                file.write(' '.join(map(str, self.y_values)) + '\n')
+        if file_needs_save:
+            # Enregistrer le graphique dans un fichier
+            options = QFileDialog.Options()
+            file_name, _ = QFileDialog.getSaveFileName(self, "Enregistrer le graphique", "", "Graphique X-Y (*.sgxy);;Tous les fichiers (*)", options=options)
+            if file_name:
+                with open(file_name, 'w') as file:
+                    # Sauvegarder les paramètres du graphique
+                    file.write(f"{self.graph_title}\n")
+                    file.write(f"{self.x_label}\n")
+                    file.write(f"{self.x_unit}\n")
+                    file.write(f"{self.y_label}\n")
+                    file.write(f"{self.y_unit}\n")
+                    # Sauvegarder les valeurs de X et Y
+                    file.write(' '.join(map(str, self.x_values)) + '\n')
+                    file.write(' '.join(map(str, self.y_values)) + '\n')
+        else:
+            self.show_no_graph_error()
 
     def loadGraph(self):
         # Charger un graphique à partir d'un fichier
@@ -397,6 +442,11 @@ class GraphApp(QMainWindow):
 
                 # Tracer le graphique avec les données chargées
                 self.plotGraph(self.x_values, self.y_values)
+        else:
+            if file_needs_save:
+                pass
+            else:
+                self.showStartupDialog()
 class GraphSettingsDialog(QDialog):
     def __init__(self, parent=None, allow_axis_edit=True):
         super().__init__(parent)
