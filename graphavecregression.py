@@ -109,6 +109,7 @@ class GraphApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle(f'Graphique X-Y - Projet Smoothgressi (ver. {numero_version})')
+        self.setWindowIcon(QIcon('./Assets/logo.png'))  # Chemin vers votre icône
         self.main_widget = QWidget()
         self.setCentralWidget(self.main_widget)
 
