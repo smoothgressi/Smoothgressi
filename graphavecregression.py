@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QWidget,
                              QDialog, QDialogButtonBox, QFormLayout, QLineEdit, QComboBox, QPushButton, QLabel, 
                              QRadioButton, QButtonGroup, QHBoxLayout, QMessageBox)
 from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtGui import QIcon
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
