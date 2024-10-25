@@ -93,7 +93,7 @@ class StartupDialog(QDialog):
         self.buttonBox.rejected.connect(self.reject)
         
         layout = QVBoxLayout()
-        label = QLabel(f"Bienvenue dans Projet Smoothgressi (ver .{numero_version}), veuillez choisir une option :")
+        label = QLabel(f"Bienvenue dans Projet Smoothgressi (ver. {numero_version}), veuillez choisir une option :")
         layout.addWidget(label)
         
         layout.addWidget(self.create_radio)
