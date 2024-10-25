@@ -9,4 +9,4 @@ Building :
 pyinstaller
 auto-py-to-exe (not required but recommended)
 
-pip install PyQt5 matplotlib pandas openpyxl
+pip install PyQt5 matplotlib pandas openpyxl pyinstaller
