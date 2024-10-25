@@ -7,6 +7,6 @@ openpyxl
 
 Building :
 pyinstaller
-auto-py-to-exe (not required but recommended)
+auto-py-to-exe (not required but recommended, not included in the install command)
 
 pip install PyQt5 matplotlib pandas openpyxl pyinstaller
