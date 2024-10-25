@@ -105,6 +105,39 @@ class StartupDialog(QDialog):
     def getChoice(self):
         return self.create_radio.isChecked()
 
+class GraphTypeDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle('Type de graphique')
+
+        layout = QVBoxLayout()
+        label = QLabel("Choisissez le type de graphique")
+        layout.addWidget(label)
+
+        self.value_graph_radio = QRadioButton('Graphique de valeurs')
+        self.function_graph_radio = QRadioButton('Graphique de fonction')
+        self.value_graph_radio.setChecked(True)
+
+        self.radio_group = QButtonGroup(self)
+        self.radio_group.addButton(self.value_graph_radio)
+        self.radio_group.addButton(self.function_graph_radio)
+
+        layout.addWidget(self.value_graph_radio)
+        layout.addWidget(self.function_graph_radio)
+
+        self.buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        self.buttonBox.accepted.connect(self.accept)
+        self.buttonBox.rejected.connect(self.reject)
+        layout.addWidget(self.buttonBox)
+
+        self.setLayout(layout)
+
+    def is_value_graph(self):
+        return self.value_graph_radio.isChecked()
+
+    def is_function_graph(self):
+        return self.function_graph_radio.isChecked()
+
 class GraphApp(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -133,7 +166,9 @@ class GraphApp(QMainWindow):
             'seaborn-v0_8-pastel', 'seaborn-v0_8-poster', 'seaborn-v0_8-talk', 'seaborn-v0_8-ticks', 'seaborn-v0_8-white', 
             'seaborn-v0_8-whitegrid', 'tableau-colorblind10'
         ]
-        self.current_theme = 'classic'
+        self.current_theme = 'Breeze'
+
+        self.graph_type = 'value'
 
         self.createMenu()
         self.resize(800, 600)
