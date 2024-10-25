@@ -3,7 +3,7 @@ import numpy as np
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QWidget, 
                              QMenuBar, QMenu, QAction, QFileDialog, QTableWidget, QTableWidgetItem, 
                              QDialog, QDialogButtonBox, QFormLayout, QLineEdit, QComboBox, QPushButton, QLabel, 
-                             QRadioButton, QButtonGroup, QHBoxLayout, QMessageBox)
+                             QRadioButton, QButtonGroup, QHBoxLayout, QMessageBox, QInputDialog)
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QIcon
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -302,7 +302,7 @@ class GraphApp(QMainWindow):
             event.accept()
 
 
-    def openGraphSettingsDialog(self):
+    def openGraphSettingsDialog3(self):
         # Ouvrir la boîte de dialogue pour la sélection de l'emplacement des données en premier
         input_method_dialog = TableInputMethodDialog(self)
         
@@ -321,6 +321,36 @@ class GraphApp(QMainWindow):
                 pass
             else:
                 self.showStartupDialog()
+
+    def openGraphSettingsDialog(self):
+        # Nouvelle boîte de dialogue pour le choix du type de graphique
+        type_dialog = GraphTypeDialog(self)
+        if type_dialog.exec_() == QDialog.Accepted:
+            if type_dialog.is_value_graph():
+                self.graph_type = 'value'
+                self.openGraphSettingsDialog3()
+            elif type_dialog.is_function_graph():
+                self.graph_type = 'function'
+                self.openFunctionDialog()
+        else:
+            if file_needs_save:
+                pass
+            else:
+                self.showStartupDialog()
+
+    def openFunctionDialog(self):
+        # Implémentation de la saisie de fonction
+        function_dialog = QInputDialog(self)
+        function_dialog.setLabelText("Entrez la fonction en termes de 'x' (par ex., 'x**2 + 3*x + 2'):")
+        if function_dialog.exec_() == QDialog.Accepted:
+            func_str = function_dialog.textValue()
+            x_values = np.linspace(-10, 10, 100)
+            try:
+                y_values = [eval(func_str, {'x': x}) for x in x_values]
+                self.plotGraph(x_values, y_values)
+            except Exception as e:
+                QMessageBox.critical(self, "Erreur", f"Erreur dans la fonction: {e}")
+
 
 
     def openGraphSettingsDialogAfterImport(self):
@@ -412,18 +442,24 @@ class GraphApp(QMainWindow):
         file_needs_save = True
         self.figure.clear()
         ax = self.figure.add_subplot(111)
-        ax.plot(x, y, 'o', label='Données')  
+
+        if self.graph_type == 'value':
+            ax.plot(x, y, 'o', label='Données')
+        elif self.graph_type == 'function':
+            ax.plot(x, y, '-', label='Fonction')
+
         ax.set_title(self.graph_title)
         ax.set_xlabel(f'{self.x_label} ({self.x_unit})')
         ax.set_ylabel(f'{self.y_label} ({self.y_unit})')
         ax.grid(True)
 
-        if self.regression_model == 'Affine':
-            self.plotAffineRegression(ax, x, y)
-        elif self.regression_model == 'Linéaire':
-            self.plotLinearRegression(ax, x, y)
-        elif self.regression_model == 'Parabole':
-            self.plotParabolaRegression(ax, x, y)
+        if self.graph_type == 'value':
+            if self.regression_model == 'Affine':
+                self.plotAffineRegression(ax, x, y)
+            elif self.regression_model == 'Linéaire':
+                self.plotLinearRegression(ax, x, y)
+            elif self.regression_model == 'Parabole':
+                self.plotParabolaRegression(ax, x, y)
 
         self.canvas.draw()
 
