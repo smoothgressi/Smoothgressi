@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 
+
 class BuildThread(QThread):
     # Signal to communicate the status back to the main thread
     build_complete = pyqtSignal(bool)
@@ -117,6 +118,7 @@ class PyInstallerGUI(QMainWindow):
         
         # Disable UI elements during the build process
         self.set_ui_enabled(False)
+        self.setWindowTitle("Constrcution - Utilitaire de build PyInstaller")
         
         # Construct command
         command = f"pyinstaller --distpath '{self.output_folder}' "
@@ -148,6 +150,7 @@ class PyInstallerGUI(QMainWindow):
     def on_build_complete(self, success):
         # Re-enable the UI elements after completion
         self.set_ui_enabled(True)
+        self.setWindowTitle("Utilitaire de build PyInstaller")
         
         # Update the status based on the build result
         if success:
@@ -164,6 +167,7 @@ class PyInstallerGUI(QMainWindow):
         self.onefile_checkbox.setDisabled(not enabled)
 
 if __name__ == "__main__":
+    print("Utilitaire de compilation PyInstaller, crée par colin524 pour Smoothgressi")
     app = QApplication(sys.argv)
     window = PyInstallerGUI()
     window.show()
