@@ -111,7 +111,7 @@ class GraphTypeDialog(QDialog):
         self.setWindowTitle('Type de graphique')
 
         layout = QVBoxLayout()
-        label = QLabel("Choisissez le type de graphique")
+        label = QLabel("Choisissez le type de graphique a generer")
         layout.addWidget(label)
 
         self.value_graph_radio = QRadioButton('Graphique de valeurs')
@@ -241,7 +241,7 @@ class GraphApp(QMainWindow):
                 # Annuler la création du nouveau graphique
                 pass
         else:
-            self.openGraphSettingsDialog
+            self.showStartupDialog()
 
 
     def showStartupDialog(self):
@@ -339,14 +339,16 @@ class GraphApp(QMainWindow):
                 self.showStartupDialog()
 
     def openFunctionDialog(self):
-        # Implémentation de la saisie de fonction
+        # Dialogue pour l'entrée de fonction
         function_dialog = QInputDialog(self)
         function_dialog.setLabelText("Entrez la fonction en termes de 'x' (par ex., 'x**2 + 3*x + 2'):")
         if function_dialog.exec_() == QDialog.Accepted:
             func_str = function_dialog.textValue()
+
             x_values = np.linspace(-10, 10, 100)
             try:
-                y_values = [eval(func_str, {'x': x}) for x in x_values]
+                # Utilisation de numpy dans eval pour permettre l'usage de fonctions numpy
+                y_values = eval(func_str, {"x": x_values, "np": np})
                 self.plotGraph(x_values, y_values)
             except Exception as e:
                 QMessageBox.critical(self, "Erreur", f"Erreur dans la fonction: {e}")
@@ -439,6 +441,11 @@ class GraphApp(QMainWindow):
 
     def plotGraph(self, x, y):
         global file_needs_save
+        # Vérifier que les valeurs et les étiquettes sont présentes
+        if not x or not y or not self.graph_title or not self.x_label or not self.y_label:
+            QMessageBox.warning(self, "Erreur", "Les données du graphique sont incomplètes. Veuillez entrer les valeurs, le titre et les étiquettes d'axes.")
+            return
+
         file_needs_save = True
         self.figure.clear()
         ax = self.figure.add_subplot(111)
