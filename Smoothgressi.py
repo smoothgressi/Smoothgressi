@@ -14,8 +14,8 @@ import tkinter as tk
 from tkinter import ttk
 import pandas as pd
 
-numero_version = "Beta-3"
-numero_build = "9"
+numero_version = "Beta-4"
+numero_build = "10"
 file_needs_save = False
 
 def show_splash():
