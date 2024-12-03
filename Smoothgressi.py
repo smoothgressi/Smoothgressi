@@ -19,6 +19,7 @@ numero_build = "9"
 file_needs_save = False
 
 def show_splash():
+    print(f"Smoothgressi ver. {numero_version} build {numero_build} crée avec ❤ par Luigiday (colin524), Nopy (nopy234536758) et Tonboti")
     splash = tk.Tk()
     splash.title("Splash Screen")
     
@@ -35,7 +36,7 @@ def show_splash():
     label = tk.Label(splash, image=image)
     label.pack()
     
-    label = ttk.Label(splash, text="Projet Smoothgressi", font=("Calibri Bold", 16))
+    label = ttk.Label(splash, text="Smoothgressi", font=("Calibri Bold", 16))
     label.pack(expand=True)
     label = ttk.Label(splash, text=f"Version {numero_version} (build {numero_build})", font=("Calibri", 8))
     label.pack(expand=True)
@@ -93,7 +94,7 @@ class StartupDialog(QDialog):
         self.buttonBox.rejected.connect(self.reject)
         
         layout = QVBoxLayout()
-        label = QLabel(f"Bienvenue dans Projet Smoothgressi (ver. {numero_version}), veuillez choisir une option :")
+        label = QLabel(f"Bienvenue dans Smoothgressi (ver. {numero_version}), veuillez choisir une option :")
         layout.addWidget(label)
         
         layout.addWidget(self.create_radio)
@@ -141,7 +142,7 @@ class GraphTypeDialog(QDialog):
 class GraphApp(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle(f'Graphique X-Y - Projet Smoothgressi (ver. {numero_version})')
+        self.setWindowTitle(f'Graphique X-Y - Smoothgressi (ver. {numero_version})')
         self.setWindowIcon(QIcon('./Assets/logo.png'))  # Chemin vers votre icône
         self.main_widget = QWidget()
         self.setCentralWidget(self.main_widget)
@@ -595,7 +596,7 @@ class AboutDialog(QDialog):
 
         layout = QVBoxLayout()
 
-        about_label = QLabel(f"Projet Smoothgressi\nVersion : {numero_version}\nNumero de build : {numero_build}\nDévloppé par colin524, nopy234536758 et Tonboti\nSite web : smoothgressi.github.io")
+        about_label = QLabel(f"Smoothgressi\nVersion : {numero_version}\nNumero de build : {numero_build}\nDévloppé par Luigiday (colin524), Nopy (nopy234536758) et Tonboti\nSite web : smoothgressi.github.io")
         about_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(about_label)
 
