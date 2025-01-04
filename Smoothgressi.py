@@ -19,7 +19,7 @@ numero_build = "10"
 file_needs_save = False
 
 def show_splash():
-    print(f"Smoothgressi ver. {numero_version} build {numero_build} crée avec ❤ par Luigiday (colin524), Nopy (nopy234536758) et Tonboti")
+    print(f"Smoothgressi ver. {numero_version} build {numero_build} crée avec ❤ par Luigiday, Nopy (nopy234536758) et Tonboti")
     splash = tk.Tk()
     splash.title("Splash Screen")
     
@@ -596,7 +596,7 @@ class AboutDialog(QDialog):
 
         layout = QVBoxLayout()
 
-        about_label = QLabel(f"Smoothgressi\nVersion : {numero_version}\nNumero de build : {numero_build}\nDévloppé par Luigiday (colin524), Nopy (nopy234536758) et Tonboti\nSite web : smoothgressi.github.io")
+        about_label = QLabel(f"Smoothgressi\nVersion : {numero_version}\nNumero de build : {numero_build}\nDévloppé par Luigiday, Nopy (nopy234536758) et Tonboti\nSite web : smoothgressi.github.io")
         about_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(about_label)
 
