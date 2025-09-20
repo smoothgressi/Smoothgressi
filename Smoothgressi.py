@@ -10,8 +10,13 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 import matplotlib.style as mplstyle
-import tkinter as tk
-from tkinter import ttk
+tkok = True
+try:
+    import tkinter as tk
+    from tkinter import ttk
+except ImportError:
+    print("No TKinter")
+    tkok = False
 import pandas as pd
 
 numero_version = "Beta-4"
@@ -607,7 +612,8 @@ class AboutDialog(QDialog):
         self.setLayout(layout)
 
 if __name__ == "__main__":
-    show_splash()
+    if tkok:
+        show_splash()
 
     app = QApplication(sys.argv)
     window = GraphApp()
