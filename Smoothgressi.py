@@ -15,7 +15,7 @@ try:
     import tkinter as tk
     from tkinter import ttk
 except ImportError:
-    print("No TKinter")
+    print("WARNING: No TKinter, splash won't be shown")
     tkok = False
 import pandas as pd
 
