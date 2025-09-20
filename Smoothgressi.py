@@ -19,9 +19,88 @@ except ImportError:
     tkok = False
 import pandas as pd
 
-numero_version = "Beta-4"
-numero_build = "10"
+numero_version = "Beta-5"
+numero_build = "12"
 file_needs_save = False
+
+def handle_exception(exc_type, exc_value, exc_traceback):
+    # Ignore KeyboardInterrupt to allow clean Ctrl+C exit
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+
+    # Print to console for debugging
+    import traceback
+    traceback.print_exception(exc_type, exc_value, exc_traceback)
+
+    try:
+
+        if issubclass(exc_type, KeyboardInterrupt):
+            sys.__excepthook__(exc_type, exc_value, exc_traceback)
+            return
+
+        # Traceback complet
+        tb_text = "".join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+
+        # Construire la QMessageBox personnalisée
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Critical)
+        msg.setWindowTitle("Erreur - Smoothgressi Crash Handler")
+        msg.setText(
+            "Une erreur inattendue est survenue pendant l'exécution de Smoothgressi.\n\n"
+            f"> {exc_value}\n\n"
+            "Si cette erreur réapparaît, veuillez la reporter aux développeurs de Smoothgressi.\n\nVous pouvez choisir de continuer (peut etre tres instable) ou quitter (risque de perte de donnés)."
+        )
+
+        # Ajout des boutons personnalisés
+        #envoyer_btn = msg.addButton("Envoyer le rapport", QMessageBox.ActionRole)
+        continuer_btn = msg.addButton("Continuer", QMessageBox.AcceptRole)
+        quitter_btn = msg.addButton("Quitter", QMessageBox.RejectRole)
+
+        # Ajout du bouton "Détails" pour voir la stacktrace
+        msg.setDetailedText(tb_text)
+
+        msg.exec_()
+
+        clicked = msg.clickedButton()
+        #if clicked == envoyer_btn:
+        #        pass
+        if clicked == quitter_btn:
+            sys.exit(1)
+        elif clicked == continuer_btn:
+            # Simplement reprendre l'exécution
+            pass
+
+        # Show a popup error dialog
+    
+    except Exception:
+        # If Qt is not initialized yet, fallback to console
+        print("Critical error:", exc_value)
+
+def send_error_report(errtype, error, detail):
+    not_implemented("send_error_report")
+
+def not_implemented(fn_name):
+        msg2 = QMessageBox()
+        msg2.setIcon(QMessageBox.warning)
+        msg2.setWindowTitle("Non implementé - Smoothgressi Crash Handler")
+        msg2.setText(
+                "Une foction non implementée a été appellée pendant l'exécution de Smoothgressi.\n\n"
+                f"> Fuction {str(fn_name)} non implementée actuellement\n\n"
+                "Veuillez verifier si une version mise a jour de Smoothressi est disponible."
+        )
+        envoyer_btn = msg2.addButton("Verifier les mises a jour", QMessageBox.ActionRole)
+        quitter_btn = msg2.addButton("Ignorer", QMessageBox.RejectRole)
+
+        msg2.exec_()
+
+        clicked = msg2.clickedButton()
+        if clicked == envoyer_btn:
+                import webbrowser
+                webbrowser.open("https://github.com/smoothgressi/Smoothgressi/releases")
+        elif clicked == quitter_btn:
+            pass
+
 
 def show_splash():
     print(f"Smoothgressi ver. {numero_version} build {numero_build} crée avec ❤ par Luigiday, Nopy (nopy234536758) et Tonboti")
@@ -37,7 +116,13 @@ def show_splash():
     splash.attributes("-topmost", 1)
     splash.overrideredirect(True)
 
-    image = tk.PhotoImage(file="./Assets/logo.png")
+    try:
+        image = tk.PhotoImage(file="./Assets/logo.png")
+    except tk.TclError:
+        splash.withdraw()
+        from tkinter import messagebox
+        messagebox.showerror("Erreur - Smoothgressi Init Crash Handler", "Imossible de trouver Assets/logo.png\nVeuillez reinstaller ou reparer Smoothressi.")
+        sys.exit()
     label = tk.Label(splash, image=image)
     label.pack()
     
@@ -361,6 +446,7 @@ class GraphApp(QMainWindow):
 
 
 
+
     def openGraphSettingsDialogAfterImport(self):
         settings_dialog = GraphSettingsDialog(self, allow_axis_edit=False)
         if settings_dialog.exec_() == QDialog.Accepted:
@@ -614,6 +700,8 @@ class AboutDialog(QDialog):
 if __name__ == "__main__":
     if tkok:
         show_splash()
+
+    sys.excepthook = handle_exception
 
     app = QApplication(sys.argv)
     window = GraphApp()

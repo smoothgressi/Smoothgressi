@@ -4,3 +4,4 @@ build.spec
 /build
 graphavecregression.spec
 /.venv
+*.spec
